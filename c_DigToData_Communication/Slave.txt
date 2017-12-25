@@ -1,0 +1,42 @@
+                                   //SLAVE 
+
+#include <Wire.h>   //The library of the I2C communication is necessary to be included
+
+#define LED1  10
+#define LED2  11
+#define LED3  9
+#define LED4  6
+#define PIN1  4
+#define PIN2  5
+
+void setup() {
+pinMode(LED1, OUTPUT);
+pinMode(LED2, OUTPUT);
+pinMode(LED3, OUTPUT);
+pinMode(LED4, OUTPUT);
+pinMode(PIN1, INPUT);
+pinMode(PIN2, INPUT);
+}
+
+void loop(){
+  if (digitalRead(PIN1)==1)
+     digitalWrite (LED1, HIGH);
+
+else digitalWrite (LED1, LOW);
+
+if (digitalRead(PIN2)==1)
+    digitalWrite (LED2, HIGH);
+
+else digitalWrite (LED2, LOW);
+
+
+if (digitalRead(PIN1)==1)
+    digitalWrite (LED3, HIGH);
+
+else digitalWrite (LED3, LOW);
+
+if (digitalRead(PIN2)==1)
+    digitalWrite (LED4, HIGH);
+
+else digitalWrite (LED4, LOW);
+}

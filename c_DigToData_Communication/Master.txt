@@ -1,0 +1,143 @@
+#define LED_BLUE  7                      //Connect LED_BLUE to Digital Pin 10
+#define LED_RED 13                       //Connect a Red LED to Digital Pin 11
+#define IR_IN   8                        //Connect the Infrared receiver to Digital Pin 8
+
+#include <Wire.h>            //Including the library to accomplish the I2C communication
+#include <LiquidCrystal.h>               //Library for the LCD
+
+LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
+
+int estado = 0;                         //Assign 0 to the variable named estado
+int pulsador = 9;                       // Assign 9 to the variable named pulsador
+
+int Pulse_Width=0;                      //Pulse width
+int  ir_code=0x00;                      //IR command code
+ 
+                                        //MASTER
+
+void timer1_init(void){                //Initialize timers
+    TCCR1A = 0X00; 
+    TCCR1B = 0X05; 
+    TCCR1C = 0X00;
+    TCNT1  = 0X00;
+    TIMSK1 = 0X00;  
+}
+ 
+void remote_deal(void){                //Get IR command
+    switch(ir_code){
+    case 0xff00:                       //Press stop button on the remote controller
+        digitalWrite(LED_RED,LOW);     //Turn off red led
+        digitalWrite(LED_BLUE,LOW);    //Silence the buzzer
+        break;
+    case 0xfe01:                       //Press VOL+ button
+        digitalWrite(LED_RED,HIGH);    //Turn off Red LED
+        break;
+    case 0xf609:                       //Press VOL- button
+        digitalWrite(LED_BLUE,HIGH);   //Turn on LED_BLUE
+        break;
+    } }
+ 
+char logic_value(){                 // The function determine the logic value "1" and "0".
+    while(!(digitalRead(8)));       //Wait low 
+    Pulse_Width = TCNT1;
+    TCNT1 = 0;
+    if( Pulse_Width >= 7 && Pulse_Width <= 10 ){            //low level 560us
+        while(digitalRead(8));                              //Value is high, then wait.
+        Pulse_Width = TCNT1;
+        TCNT1=0;
+        if( Pulse_Width >= 7 && Pulse_Width <= 10 )        //High level 560us
+             return 0;
+             else if( Pulse_Width >= 25 && Pulse_Width <= ) //High level 1.7ms
+             return 1;
+    }
+    return -1;
+}
+ 
+void pulse_deal()  {             //Receive address code and command code pulse function
+    int i;   
+
+ for(i=0; i<8; i++) {            // Run 8 zeros
+      if( logic_value() != 0 )   //If it isn't 0.
+          return; 
+    }
+                                                                 
+    for(i=0; i<6; i++) {         // Run 6 ones
+      if(logic_value()!= 1)      //If it isn't 1.
+          return;
+    }
+                                                                 
+    if(logic_value()!= 0)       //Run 1 zero If it isn't 0.
+        return;
+ 
+    if(logic_value()!= 1)       // Run 1 one If it isn't 1.
+        return;
+   
+    ir_code = 0x00;                                  //clear
+    for(i=0; i<16;i++ )  {            //decode the commands of IR remote control codes
+      if(logic_value() == 1)   {
+        ir_code |=(1<<i);
+      }    }    }
+ 
+void remote_decode(void){                   //decode function
+    TCNT1 = 0X00;       
+    while(digitalRead(8)){                        // Value is high, then wait.
+      if(TCNT1>=1563){// High level duration exceeds 100ms, which means "no button pressed".
+        ir_code = 0xff00;
+        return;
+      }      }
+     
+    // High level duration doesn't exceed 100ms.
+    TCNT1 = 0X00;
+    while(!(digitalRead(8)));                                                                                          // wait low
+    Pulse_Width=TCNT1;
+    TCNT1 = 0;
+    if(Pulse_Width>=140&&Pulse_Width<=141) {             // 9ms  
+        while(digitalRead(8));                                                                                         //Value is high, then wait.
+        Pulse_Width=TCNT1;
+        TCNT1=0;
+        if(Pulse_Width>=68&&Pulse_Width<=72) {           //4.5ms
+          pulse_deal();
+          return;
+        }
+        else if(Pulse_Width>=34&&Pulse_Width<=36){      //2.25ms
+          while(!(digitalRead(8)));                     //wait low
+          Pulse_Width=TCNT1;
+          TCNT1=0;
+          if(Pulse_Width>=7&&Pulse_Width<=10){         //560µs
+            return; 
+          }   }    }   }
+ 
+void setup() {
+
+unsigned char i;
+  pinMode(LED_RED,OUTPUT);                        //Set red LED pin output
+  pinMode(LED_BLUE,OUTPUT);                       //Set blue LED pin output
+  pinMode(IR_IN,INPUT);  
+  
+lcd.begin(16, 2);                         // set up the LCD's number of columns and rows
+lcd.print("Hello Profesor");              // Print a message to the LCD.
+ 
+Wire.begin(); 
+//Begin the I2C communication, the emptiness of the parenthesis indicates the role of master in the code
+}
+
+void loop() {
+timer1_init(); 
+remote_decode();                                  //decode
+remote_deal(); 
+estado = digitalRead(pulsador);                   //testing the estate of the variable pulsador
+
+if(estado == 1){                //if the state of the variable named estado is equal to 1
+Wire.beginTransmission(4);                   //The process of transmission is started.
+Wire.write(1);                               //Turn on (stage 1) writing on the master.
+Wire.endTransmission();                      //Stopped the transmisión
+}
+else{                                        //otherwise
+Wire.beginTransmission(4);                   //Begin transmission with dispositive 4
+Wire.write(2);                               //Write down the order in dispositive 2
+Wire.endTransmission();                      //End of transmitting process
+}
+{                                         // set the cursor to column 0, line 1 
+  lcd.setCursor(0, 1);  // (note: line 1 is the second row, since counting begins with 0):
+    lcd.print(millis()/1000);             // print the number of seconds since reset:
+} }
