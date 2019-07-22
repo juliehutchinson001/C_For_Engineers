@@ -187,6 +187,7 @@ switch (op2)
     break;
 
     case 'c':
+    fscanf(myPointer, "%c", &op3);
     printf("The following function will change a Capital letter into a lowercase letter\n");
     fprintf(myPointer2, "The following function will change a Capital letter into a lowercase letter\n");
     printf("%c ==> %c\n\n", op3,tolower(op3));
@@ -194,6 +195,7 @@ switch (op2)
     break;
 
     case 'C':
+    fscanf(myPointer, "%c", &op3);
     printf("The following function will change a lowercase letter into a capital letter\n");
     fprintf(myPointer2, "The following function will change a lowercase letter into a capital letter\n");
     printf("%c ==> %c\n", op3,toupper(op3));
@@ -293,5 +295,3 @@ void Help(char op2){//Help command will explain all the functions that this calc
     printf("\n\t H ---> view all commands. \n");
     printf("\n\t Q ---> Quit program.\n\n");
 }
-
-
